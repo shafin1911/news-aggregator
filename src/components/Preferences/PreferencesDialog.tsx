@@ -1,5 +1,5 @@
 // src/components/PreferencesDialog.tsx
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import {
   Dialog,
   DialogTitle,
@@ -13,6 +13,7 @@ import {
 } from "@mui/material"
 import { useAggregatedOptions } from "../../hooks/useAggregatedOptions"
 import { CategoryOption, SourceOption } from "../../services/types"
+import { useAppStore } from "../../store/app-store"
 
 export type UserPreferences = {
   sources: string[] // store IDs
@@ -23,8 +24,6 @@ export type UserPreferences = {
 type PreferencesDialogProps = {
   open: boolean
   onClose: () => void
-  preferences: UserPreferences
-  onSave: (prefs: UserPreferences) => void
 }
 
 const filter = createFilterOptions<string>()
@@ -32,9 +31,9 @@ const filter = createFilterOptions<string>()
 const PreferencesDialog: React.FC<PreferencesDialogProps> = ({
   open,
   onClose,
-  preferences,
-  onSave,
 }) => {
+  const { preferences, setPreferences } = useAppStore()
+
   const [selectedSources, setSelectedSources] = useState<SourceOption[]>([])
   // Instead of storing strings, we store selected category objects.
   const [selectedCategories, setSelectedCategories] = useState<
@@ -43,6 +42,14 @@ const PreferencesDialog: React.FC<PreferencesDialogProps> = ({
   const [authors, setAuthors] = useState<string[]>(preferences.authors)
   // Get aggregated options.
   const { sources, categories } = useAggregatedOptions()
+
+  const handleSavePreferences = useCallback(
+    (prefs: UserPreferences) => {
+      setPreferences(prefs)
+      localStorage.setItem("userPreferences", JSON.stringify(prefs))
+    },
+    [setPreferences]
+  )
 
   // Preselect sources and categories based on stored preferences.
   useEffect(() => {
@@ -57,7 +64,7 @@ const PreferencesDialog: React.FC<PreferencesDialogProps> = ({
   }, [preferences.sources, preferences.categories, sources, categories])
 
   const handleSave = () => {
-    onSave({
+    handleSavePreferences({
       sources: selectedSources.map((src) => src.id),
       categories: selectedCategories.map((cat) => cat.id),
       authors: authors,
@@ -66,14 +73,19 @@ const PreferencesDialog: React.FC<PreferencesDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} data-testid='preferences-dialog'>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      data-testid='preferences-dialog'
+      fullWidth
+    >
       <DialogTitle>Personalize Your News Feed</DialogTitle>
       <DialogContent>
         <Autocomplete
           multiple
           options={sources}
           value={selectedSources}
-          onChange={(event, newValue) => setSelectedSources(newValue)}
+          onChange={(_, newValue) => setSelectedSources(newValue)}
           getOptionLabel={(option) => option.name}
           renderInput={(params) => (
             <TextField
@@ -88,7 +100,7 @@ const PreferencesDialog: React.FC<PreferencesDialogProps> = ({
           multiple
           options={categories}
           value={selectedCategories}
-          onChange={(event, newValue) => setSelectedCategories(newValue)}
+          onChange={(_, newValue) => setSelectedCategories(newValue)}
           getOptionLabel={(option) => option.display}
           renderInput={(params) => (
             <TextField
@@ -104,7 +116,7 @@ const PreferencesDialog: React.FC<PreferencesDialogProps> = ({
           freeSolo
           options={[]} // No predefined list for authors.
           value={authors}
-          onChange={(event, newValue) => setAuthors(newValue as string[])}
+          onChange={(_, newValue) => setAuthors(newValue as string[])}
           filterOptions={(options, params) => {
             const filtered = filter(options, params)
             if (params.inputValue !== "") {

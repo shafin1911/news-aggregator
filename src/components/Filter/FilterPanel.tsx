@@ -1,5 +1,5 @@
 // src/components/FilterPanel.tsx
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import {
   Box,
   Paper,
@@ -11,58 +11,31 @@ import {
   Button,
 } from "@mui/material"
 import { useAggregatedOptions } from "../../hooks/useAggregatedOptions"
+import { useAppStore } from "../../store/app-store"
+import { FilterOptions } from "../../services/types"
 
-export type FilterOptions = {
-  fromDate: string
-  toDate: string
-  category: string // stored in lowercase
-  source: string
-}
-
-type FilterPanelProps = {
-  filterOptions: FilterOptions
-  onApplyFilters: (filters: FilterOptions) => void
-  onClearFilters: () => void
-}
-
-const FilterPanel: React.FC<FilterPanelProps> = ({
-  filterOptions,
-  onApplyFilters,
-  onClearFilters,
-}) => {
+const FilterPanel: React.FC = () => {
+  const { filterOptions, setFilterOptions } = useAppStore()
   const [localFilters, setLocalFilters] = useState<FilterOptions>(filterOptions)
 
   // Get aggregated options from our custom hook.
   const { sources, categories } = useAggregatedOptions()
 
+  const handleApplyFilters = useCallback(
+    (filters: FilterOptions) => {
+      setFilterOptions(filters)
+    },
+    [setFilterOptions]
+  )
+
+  const handleClearFilters = useCallback(() => {
+    setFilterOptions({ fromDate: "", toDate: "", category: "", source: "" })
+  }, [setFilterOptions])
+
   // Update local state when parent's filterOptions change.
   useEffect(() => {
     setLocalFilters(filterOptions)
   }, [filterOptions])
-
-  // When category changes, clear the source if it doesn't match.
-  // useEffect(() => {
-  //   if (localFilters.category && localFilters.source) {
-  //     const selectedSource = sources.find(
-  //       (src) => src.id === localFilters.source
-  //     )
-  //     if (selectedSource) {
-  //       const srcCat = selectedSource.category
-  //       if (srcCat !== localFilters.category) {
-  //         setLocalFilters((prev) => ({ ...prev, source: "" }))
-  //       }
-  //     }
-  //   }
-  // }, [localFilters.category, localFilters.source, sources])
-
-  // Filter sources based on selected category.
-  // const filteredSources = localFilters.category
-  //   ? sources.filter((src) => {
-  //       if (src.category) {
-  //         return src.category === localFilters.category
-  //       }
-  //     })
-  //   : sources
 
   // Sort filtered sources alphabetically by name.
   const sortedFilteredSources = [...sources].sort((a, b) =>
@@ -70,7 +43,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   )
 
   const handleApply = () => {
-    onApplyFilters(localFilters)
+    handleApplyFilters(localFilters)
   }
 
   const handleClear = () => {
@@ -81,7 +54,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       source: "",
     }
     setLocalFilters(cleared)
-    onClearFilters()
+    handleClearFilters()
   }
 
   return (

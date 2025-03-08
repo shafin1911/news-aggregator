@@ -1,14 +1,35 @@
-import React from "react"
+import React, { useEffect } from "react"
 import NewsItem from "./NewsItem"
 import { Grid, Paper } from "@mui/material"
-import { StandardArticle } from "../../services/types"
 import EmptyState from "./EmptyState"
+import { useFilteredArticles } from "../../hooks/useFilteredArticles"
+import { useAppStore } from "../../store/app-store"
+import Loader from "../loaders/Loader"
 
-type NewsListProps = {
-  articles: StandardArticle[]
-}
+const NewsList: React.FC = () => {
+  const {
+    articles,
+    setArticles,
+    allArticles,
+    filterOptions,
+    preferences,
+    isNewsLoading,
+  } = useAppStore()
 
-const NewsList: React.FC<NewsListProps> = ({ articles }) => {
+  // Use custom hook to get filtered articles.
+  const filteredArticles = useFilteredArticles(
+    allArticles,
+    filterOptions,
+    preferences
+  )
+
+  useEffect(() => {
+    setArticles(filteredArticles)
+  }, [filteredArticles, setArticles])
+
+  if (isNewsLoading)
+    return <Loader message='Loading articles. Please wait...' />
+
   if (!articles.length) {
     return <EmptyState />
   }
