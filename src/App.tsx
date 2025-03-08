@@ -1,9 +1,13 @@
-import React from "react"
+import React, { Suspense } from "react"
 import NewsList from "./components/news/NewsList"
 import SearchBar from "./components/search/SearchBar"
-import PreferencesDialog from "./components/preferences/PreferencesDialog"
 import { Container, Box } from "@mui/material"
 import AppHeader from "./components/layout/AppHeader"
+import Loader from "./components/loaders/Loader"
+
+const PreferencesDialog = React.lazy(
+  () => import("./components/preferences/PreferencesDialog")
+)
 
 const App: React.FC = () => {
   const [preferencesOpen, setPreferencesOpen] = React.useState(false)
@@ -17,25 +21,30 @@ const App: React.FC = () => {
     >
       <AppHeader setPreferencesOpen={setPreferencesOpen} />
 
-      <Box
-        sx={{
-          position: "sticky",
-          top: 48,
-          backgroundColor: (theme) => theme.palette.background.paper,
-          zIndex: (theme) => theme.zIndex.appBar - 1,
-        }}
-      >
-        <SearchBar />
-      </Box>
+      <Container maxWidth='xl' sx={{ my: 4 }}>
+        <Box
+          sx={{
+            position: "sticky",
+            top: 48,
+            backgroundColor: (theme) => theme.palette.background.paper,
+            zIndex: (theme) => theme.zIndex.appBar - 1,
+            mb: 4,
+          }}
+        >
+          <SearchBar />
+        </Box>
 
-      <Container sx={{ pt: 2 }}>
         <NewsList />
       </Container>
 
-      <PreferencesDialog
-        open={preferencesOpen}
-        onClose={() => setPreferencesOpen(false)}
-      />
+      {preferencesOpen && (
+        <Suspense fallback={<Loader message='Loading preferences...' />}>
+          <PreferencesDialog
+            open={preferencesOpen}
+            onClose={() => setPreferencesOpen(false)}
+          />
+        </Suspense>
+      )}
     </Box>
   )
 }

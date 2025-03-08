@@ -35,10 +35,10 @@ const NewsList: React.FC = () => {
   }
 
   return (
-    <Paper sx={{ p: 2, mb: 4 }} elevation={2}>
+    <Paper sx={{ p: 2, mb: 4 }} elevation={2} data-testid='news-list'>
       <Grid container spacing={3}>
         {articles.map((article, index) => (
-          <Grid item xs={12} md={6} lg={4} key={index}>
+          <Grid item xs={12} md={6} lg={4} xl={3} key={index}>
             <NewsItem article={article} />
           </Grid>
         ))}

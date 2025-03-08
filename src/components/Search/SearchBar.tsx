@@ -1,16 +1,23 @@
 // src/components/SearchBar.tsx
-import React, { useState, useEffect, useMemo, useCallback } from "react"
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  Suspense,
+} from "react"
 import { Box, TextField, IconButton, Paper, Badge } from "@mui/material"
 import FilterListIcon from "@mui/icons-material/FilterList"
 import { NewsAggregator } from "../../services/NewsAggregator"
 import { useAppStore } from "../../store/app-store"
 import { StandardArticle } from "../../services/types"
-import FilterPanel from "../filter/FilterPanel"
+import Loader from "../loaders/Loader"
+
+const FilterPanel = React.lazy(() => import("../filter/FilterPanel"))
 
 const SearchBar: React.FC = () => {
-  const [showFilters, setShowFilters] = React.useState(false)
-
   const aggregator = useMemo(() => new NewsAggregator(), [])
+
   const {
     setAllArticles,
     setArticles,
@@ -18,7 +25,9 @@ const SearchBar: React.FC = () => {
     setIsNewsLoading,
     filterOptions,
   } = useAppStore()
+
   const queryRef = React.useRef<string>("")
+  const [showFilters, setShowFilters] = React.useState(false)
   const [query, setQuery] = useState(queryRef.current)
 
   // Calculate active filter count: count non-empty fields in filterOptions.
@@ -80,7 +89,12 @@ const SearchBar: React.FC = () => {
           </Badge>
         </Box>
       </Paper>
-      {showFilters && <FilterPanel />}
+
+      {showFilters && (
+        <Suspense fallback={<Loader message='Loading filters...' />}>
+          <FilterPanel />
+        </Suspense>
+      )}
     </>
   )
 }
