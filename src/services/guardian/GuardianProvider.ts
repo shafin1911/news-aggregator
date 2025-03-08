@@ -2,6 +2,7 @@
 import axios from "axios"
 import { GUARDIAN_MOCK } from "./guardian_mock"
 import { GUARDIAN_SECTION_MOCK } from "./guardian_section_mock"
+import { StandardArticle } from "../types"
 
 // Guardian API settings.
 const GUARDIAN_API_KEY = "test" // Replace with your key if needed.
@@ -27,23 +28,6 @@ export type GuardianArticle = {
     webTitle: string
     webUrl: string
   }>
-}
-
-// Define your standard article structure expected by the UI.
-export type StandardArticle = {
-  title: string
-  description: string
-  url: string
-  publishedAt: string
-  urlToImage: string
-  source: {
-    id: string
-    name: string
-  }
-  // We'll include a 'category' field which the UI uses for filtering.
-  category: string
-  // For authors, we'll store a comma-separated string.
-  author: string
 }
 
 /**

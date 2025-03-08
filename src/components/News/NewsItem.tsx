@@ -11,9 +11,10 @@ import {
   Avatar,
 } from "@mui/material"
 import OpenInNewIcon from "@mui/icons-material/OpenInNew"
+import { StandardArticle } from "../../services/types"
 
 type NewsItemProps = {
-  article: any
+  article: StandardArticle
 }
 
 const NewsItem: React.FC<NewsItemProps> = ({ article }) => {

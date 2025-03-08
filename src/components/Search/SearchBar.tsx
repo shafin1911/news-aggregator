@@ -1,5 +1,5 @@
 // src/components/SearchBar.tsx
-import React, { useState, useEffect, memo } from "react"
+import React, { useState, useEffect } from "react"
 import { Box, TextField, IconButton, Paper } from "@mui/material"
 import FilterListIcon from "@mui/icons-material/FilterList"
 

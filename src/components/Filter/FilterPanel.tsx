@@ -10,7 +10,7 @@ import {
   MenuItem,
   Button,
 } from "@mui/material"
-import { useAggregatedOptions } from "../hooks/useAggregatedOptions"
+import { useAggregatedOptions } from "../../hooks/useAggregatedOptions"
 
 export type FilterOptions = {
   fromDate: string
@@ -41,38 +41,31 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   }, [filterOptions])
 
   // When category changes, clear the source if it doesn't match.
-  // Do not clear if the source is "guardian".
-  useEffect(() => {
-    if (
-      localFilters.category &&
-      localFilters.source &&
-      localFilters.source !== "guardian"
-    ) {
-      const selectedSource = sources.find(
-        (src) => src.id === localFilters.source
-      )
-      if (selectedSource) {
-        const srcCat = selectedSource.category
-        if (srcCat !== localFilters.category) {
-          setLocalFilters((prev) => ({ ...prev, source: "" }))
-        }
-      }
-    }
-  }, [localFilters.category, localFilters.source, sources])
+  // useEffect(() => {
+  //   if (localFilters.category && localFilters.source) {
+  //     const selectedSource = sources.find(
+  //       (src) => src.id === localFilters.source
+  //     )
+  //     if (selectedSource) {
+  //       const srcCat = selectedSource.category
+  //       if (srcCat !== localFilters.category) {
+  //         setLocalFilters((prev) => ({ ...prev, source: "" }))
+  //       }
+  //     }
+  //   }
+  // }, [localFilters.category, localFilters.source, sources])
 
   // Filter sources based on selected category.
-  const filteredSources = localFilters.category
-    ? sources.filter((src) => {
-        if (src.category) {
-          return src.category === localFilters.category
-        }
-        // For Guardian (or sources with no category), include it.
-        return src.id === "guardian"
-      })
-    : sources
+  // const filteredSources = localFilters.category
+  //   ? sources.filter((src) => {
+  //       if (src.category) {
+  //         return src.category === localFilters.category
+  //       }
+  //     })
+  //   : sources
 
   // Sort filtered sources alphabetically by name.
-  const sortedFilteredSources = [...filteredSources].sort((a, b) =>
+  const sortedFilteredSources = [...sources].sort((a, b) =>
     a.name.localeCompare(b.name)
   )
 
@@ -92,7 +85,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   }
 
   return (
-    <Paper sx={{ p: 2, mt: 2 }} data-testid='filter-panel'>
+    <Paper sx={{ p: 2, mt: 2, borderRadius: 0 }} data-testid='filter-panel'>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Box
           sx={{

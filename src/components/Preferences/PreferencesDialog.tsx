@@ -11,11 +11,8 @@ import {
   Chip,
   createFilterOptions,
 } from "@mui/material"
-import {
-  useAggregatedOptions,
-  SourceOption,
-  CategoryOption,
-} from "../hooks/useAggregatedOptions"
+import { useAggregatedOptions } from "../../hooks/useAggregatedOptions"
+import { CategoryOption, SourceOption } from "../../services/types"
 
 export type UserPreferences = {
   sources: string[] // store IDs

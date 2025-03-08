@@ -1,14 +1,16 @@
 // src/App.tsx
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useEffect, useCallback, useMemo } from "react"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
-import { fetchNews, fetchSources } from "./services/newsApi"
-import { fetchGuardianNews } from "./services/guardianApi"
-import NewsList from "./components/NewsList"
-import SearchBar from "./components/SearchBar"
-import FilterPanel, { FilterOptions } from "./components/FilterPanel"
-import PreferencesDialog, {
+import { NewsAggregator } from "./services/NewsAggregator"
+import {
+  StandardArticle,
+  FilterOptions,
   UserPreferences,
-} from "./components/PreferencesDialog"
+} from "./services/types"
+import NewsList from "./components/News/NewsList"
+import SearchBar from "./components/Search/SearchBar"
+import FilterPanel from "./components/Filter/FilterPanel"
+import PreferencesDialog from "./components/Preferences/PreferencesDialog"
 import {
   AppBar,
   Toolbar,
@@ -17,153 +19,77 @@ import {
   Box,
   Button,
 } from "@mui/material"
-
-// Helper: Format a Date in local time as "YYYY-MM-DD"
-const formatLocalDate = (date: Date): string => {
-  const year = date.getFullYear()
-  const month = ("0" + (date.getMonth() + 1)).slice(-2)
-  const day = ("0" + date.getDate()).slice(-2)
-  return `${year}-${month}-${day}`
-}
+import { useAppStore } from "./store/app-store"
+import { useFilteredArticles } from "./hooks/useFilteredArticles"
 
 const App: React.FC = () => {
-  // Master list of articles from both APIs.
-  const [allArticles, setAllArticles] = useState<any[]>([])
-  // Articles after filtering.
-  const [articles, setArticles] = useState<any[]>([])
-  // Current search query.
-  const [searchQuery, setSearchQuery] = useState("")
-  // Controlled filter options from the FilterPanel.
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    fromDate: "",
-    toDate: "",
-    category: "",
-    source: "",
-  })
-  // User preferences; persisted via localStorage.
-  const [preferences, setPreferences] = useState<UserPreferences>(() => {
-    const stored = localStorage.getItem("userPreferences")
-    return stored
-      ? JSON.parse(stored)
-      : { sources: [], categories: [], authors: [] }
-  })
-  // Toggle visibility of FilterPanel and PreferencesDialog.
-  const [showFilters, setShowFilters] = useState(false)
-  const [preferencesOpen, setPreferencesOpen] = useState(false)
-  // Mapping of source ID to category (loaded from fetchSources for NewsAPI).
-  const [sourceMapping, setSourceMapping] = useState<Record<string, string>>({})
+  // Instantiate aggregator once.
+  const aggregator = useMemo(() => new NewsAggregator(), [])
 
-  // Load source mapping on mount (for NewsAPI sources only).
-  useEffect(() => {
-    const loadSourceMapping = async () => {
-      const sources = await fetchSources()
-      const mapping: Record<string, string> = {}
-      sources.forEach((s: any) => {
-        // Store the category in lowercase.
-        mapping[s.id] = s.category ? s.category.toLowerCase() : ""
-      })
-      setSourceMapping(mapping)
-    }
-    loadSourceMapping()
-  }, [])
+  // Extract state and actions from the store.
+  const {
+    allArticles,
+    articles,
+    filterOptions,
+    preferences,
+    setAllArticles,
+    setArticles,
+    setFilterOptions,
+    setPreferences,
+  } = useAppStore()
 
-  // Aggregated search: Call both APIs, map Guardian data to standard format, and merge results.
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query)
-    Promise.all([fetchNews({ query }), fetchGuardianNews({ q: query })]).then(
-      ([newsApiArticles, guardianArticles]) => {
-        const mergedArticles = [...newsApiArticles, ...guardianArticles]
+  // Local UI state for toggling dialogs.
+  const [showFilters, setShowFilters] = React.useState(false)
+  const [preferencesOpen, setPreferencesOpen] = React.useState(false)
+
+  // Handle search: fetch news via aggregator and update store.
+  const handleSearch = useCallback(
+    (query: string) => {
+      console.log("test query", query)
+      aggregator.fetchNews(query).then((mergedArticles: StandardArticle[]) => {
         setAllArticles(mergedArticles)
         // Reset filters on new search.
         setFilterOptions({ fromDate: "", toDate: "", category: "", source: "" })
         setArticles(mergedArticles)
-      }
-    )
-  }, [])
+      })
+    },
+    [aggregator, setAllArticles, setFilterOptions, setArticles]
+  )
 
-  // Update filter options when the user applies filters.
-  const handleApplyFilters = useCallback((filters: FilterOptions) => {
-    setFilterOptions(filters)
-  }, [])
+  // Fetch news on mount.
+  useEffect(() => {
+    // handleSearch("")
+  }, [handleSearch])
+
+  const handleApplyFilters = useCallback(
+    (filters: FilterOptions) => {
+      setFilterOptions(filters)
+    },
+    [setFilterOptions]
+  )
 
   const handleClearFilters = useCallback(() => {
     setFilterOptions({ fromDate: "", toDate: "", category: "", source: "" })
-  }, [])
+  }, [setFilterOptions])
 
-  // Save user preferences and persist them.
-  const handleSavePreferences = useCallback((prefs: UserPreferences) => {
-    setPreferences(prefs)
-    localStorage.setItem("userPreferences", JSON.stringify(prefs))
-  }, [])
+  const handleSavePreferences = useCallback(
+    (prefs: UserPreferences) => {
+      setPreferences(prefs)
+    },
+    [setPreferences]
+  )
 
-  // Filtering function: Applies date filters, filter panel values, and personalization.
-  const applyClientSideFilters = useCallback(() => {
-    const filtered = allArticles.filter((article) => {
-      // Date filtering using local date strings.
-      if (filterOptions.fromDate) {
-        const artDay = formatLocalDate(new Date(article.publishedAt))
-        if (artDay < filterOptions.fromDate) return false
-      }
-      if (filterOptions.toDate) {
-        const artDay = formatLocalDate(new Date(article.publishedAt))
-        if (artDay > filterOptions.toDate) return false
-      }
-      // Category filtering:
-      // In App.tsx, inside applyClientSideFilters:
-      if (filterOptions.category) {
-        if (article.source?.id === "guardian") {
-          // For Guardian articles, article.category is already lowercase (derived from sectionName)
-          if ((article.category || "").toLowerCase() !== filterOptions.category)
-            return false
-        } else {
-          const articleCategory = sourceMapping[article.source?.id] || ""
-          if (articleCategory !== filterOptions.category) return false
-        }
-      }
-
-      // Source filtering.
-      if (filterOptions.source) {
-        if (!article.source || article.source.id !== filterOptions.source)
-          return false
-      }
-      // PERSONALIZATION FILTERS:
-      // Preferred Sources.
-      if (preferences.sources.length > 0) {
-        if (!article.source || !preferences.sources.includes(article.source.id))
-          return false
-      }
-      // Preferred Categories.
-      if (preferences.categories.length > 0) {
-        // For Guardian articles, use article.category.
-        const artCat =
-          article.source?.id === "guardian"
-            ? (article.category || "").toLowerCase()
-            : (sourceMapping[article.source?.id] || "").toLowerCase()
-        if (!preferences.categories.includes(artCat)) return false
-      }
-      // Preferred Authors.
-      if (preferences.authors.length > 0) {
-        if (!article.author) return false
-        const artAuthor = article.author.toLowerCase()
-        const match = preferences.authors.some((prefAuthor) =>
-          artAuthor.includes(prefAuthor.toLowerCase())
-        )
-        if (!match) return false
-      }
-      return true
-    })
-    setArticles(filtered)
-  }, [allArticles, filterOptions, preferences, sourceMapping])
-
-  useEffect(() => {
-    applyClientSideFilters()
-  }, [
+  // Use the custom hook to get filtered articles.
+  const filteredArticles = useFilteredArticles(
     allArticles,
     filterOptions,
-    preferences,
-    sourceMapping,
-    applyClientSideFilters,
-  ])
+    preferences
+  )
+
+  // Update articles whenever filteredArticles changes.
+  useEffect(() => {
+    setArticles(filteredArticles)
+  }, [filteredArticles, setArticles])
 
   return (
     <Router>
@@ -189,7 +115,7 @@ const App: React.FC = () => {
         <Box
           sx={{
             position: "sticky",
-            top: 48, // Adjust based on your AppBar height.
+            top: 48,
             backgroundColor: (theme) => theme.palette.background.paper,
             zIndex: (theme) => theme.zIndex.appBar - 1,
           }}

@@ -1,12 +1,18 @@
 import React from "react"
 import NewsItem from "./NewsItem"
 import { Grid, Paper } from "@mui/material"
+import { StandardArticle } from "../../services/types"
+import EmptyState from "./EmptyState"
 
 type NewsListProps = {
-  articles: any[]
+  articles: StandardArticle[]
 }
 
 const NewsList: React.FC<NewsListProps> = ({ articles }) => {
+  if (!articles.length) {
+    return <EmptyState />
+  }
+
   return (
     <Paper sx={{ p: 2, mb: 4 }} elevation={2}>
       <Grid container spacing={3}>

@@ -12,7 +12,7 @@ import {
   useMediaQuery,
 } from "@mui/material"
 import SearchIcon from "@mui/icons-material/Search"
-import { fetchSources } from "../services/newsApi"
+import { fetchSources } from "../services/newsapi/NewsApiProvider"
 
 export type FilterOptions = {
   query: string
