@@ -1,4 +1,3 @@
-// src/components/PreferencesDialog.tsx
 import React, { useCallback, useEffect, useState } from "react"
 import {
   Dialog,
@@ -28,18 +27,28 @@ type PreferencesDialogProps = {
 
 const filter = createFilterOptions<string>()
 
+/**
+ * A dialog to let users personalize their news feed by selecting sources,
+ * categories, and authors to show in the feed.
+ *
+ * @param {boolean} open - Whether the dialog is open.
+ * @param {() => void} onClose - Called when the user closes the dialog.
+ *
+ * @example
+ * <PreferencesDialog open={true} onClose={() => console.log('closed')} />
+ */
 const PreferencesDialog: React.FC<PreferencesDialogProps> = ({
   open,
   onClose,
 }) => {
   const { preferences, setPreferences } = useAppStore()
-
   const [selectedSources, setSelectedSources] = useState<SourceOption[]>([])
   // Instead of storing strings, we store selected category objects.
   const [selectedCategories, setSelectedCategories] = useState<
     CategoryOption[]
   >([])
   const [authors, setAuthors] = useState<string[]>(preferences.authors)
+
   // Get aggregated options.
   const { sources, categories } = useAggregatedOptions()
 

@@ -4,11 +4,12 @@ FROM node:18-alpine
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and yarn.lock first to leverage caching
+# Copy package.json and package-lock.json first for caching
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install
+
+# Use npm ci for faster installation
+RUN npm ci 
 
 # Copy the rest of the application
 COPY . .
@@ -20,4 +21,4 @@ RUN npm run build
 EXPOSE 5173
 
 # Command to run the application
-CMD ["npm", "run", "preview", "--", "--host"]
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "5173"]

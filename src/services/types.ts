@@ -1,5 +1,3 @@
-// src/services/types.ts
-
 /**
  * A unified article structure for the UI.
  */

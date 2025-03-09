@@ -17,6 +17,20 @@ type NewsItemProps = {
   article: StandardArticle
 }
 
+/**
+ * Component for displaying a single news article as a card.
+ *
+ * This component utilizes Material-UI's Card components to display the article's
+ * source, title, author, description, and an optional image. The card also includes
+ * a link to the full article.
+ *
+ * Props:
+ * - article: An object of type StandardArticle containing the article details.
+ *
+ * The card features a hover effect that elevates the card and provides a subtle transformation.
+ * Displays the source's initial as an avatar and handles missing data gracefully.
+ */
+
 const NewsItem: React.FC<NewsItemProps> = ({ article }) => {
   const titleInitial = article.source?.name?.[0] || "N"
 

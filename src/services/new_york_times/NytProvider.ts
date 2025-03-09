@@ -1,9 +1,8 @@
 import axios from "axios"
-import { NYT_MOCK } from "./nyt_mock"
 import { StandardArticle } from "../types"
 
-// Guardian API settings.
-const NYT_API_KEY = "test" // Replace with your key if needed.
+// New York Times API settings.
+const NYT_API_KEY = import.meta.env.VITE_NYT_API_KEY
 const NYT_BASE_URL = "https://api.nytimes.com/svc/search/v2"
 
 // Define the shape of a NYT article as returned by the API.
@@ -29,6 +28,7 @@ export type NytArticle = {
 }
 
 // Cache for NYT news promises, keyed by query.
+// This is used to reduce API requests
 const cachedNYTNewsPromises: Map<string, Promise<StandardArticle[]>> = new Map()
 
 /**
@@ -80,6 +80,7 @@ export const fetchNYTNews = async (
               name: article.section_name,
             }
           : { id: "", name: "" }
+
         return {
           title,
           description,
@@ -100,6 +101,8 @@ export const fetchNYTNews = async (
       return []
     })
 
+  // Store the promise in the cache
   cachedNYTNewsPromises.set(queryKey, promise)
+
   return promise
 }

@@ -1,9 +1,23 @@
-// src/components/Loader.tsx
 import React from "react"
 import { Box, Typography, CircularProgress } from "@mui/material"
 import { motion } from "framer-motion"
 import { DotLottieReact } from "@lottiefiles/dotlottie-react"
 
+/**
+ * A reusable loader component that displays a circular progress, a lottie animation
+ * and a message.
+ *
+ * The component is designed to be used as a full-screen loader.
+ *
+ * The animation is a custom animation provided by LottieFiles.
+ *
+ * The component uses framer-motion to create a smooth animation of the loader.
+ *
+ * The loader is fully responsive and will adapt to different screen sizes.
+ *
+ * @param {string} [message="Loading please wait..."] - The message to display
+ * below the loader.
+ */
 const Loader: React.FC<{ message?: string }> = ({
   message = "Loading please wait...",
 }) => {

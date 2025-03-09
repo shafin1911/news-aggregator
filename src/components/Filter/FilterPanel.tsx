@@ -1,4 +1,3 @@
-// src/components/Filter/FilterPanel.tsx
 import React, { useState, useEffect, useCallback } from "react"
 import {
   Box,
@@ -14,6 +13,15 @@ import { useAppStore } from "../../store/app-store"
 import { FilterOptions } from "../../services/types"
 import { useDerivedFilterOptions } from "../../hooks/useDerivedFilterOptions"
 
+/**
+ * Component for the filter panel.
+ * - Retrieve filter options and all articles from the store.
+ * - Use derived options to populate select options.
+ * - Update local state when store filterOptions change.
+ * - Apply filters to store when the form is submitted.
+ * - Clear filters when the clear button is clicked.
+ * @returns React component for the filter panel.
+ */
 const FilterPanel: React.FC = () => {
   // Get filter options and articles from the store.
   const { filterOptions, setFilterOptions, allArticles } = useAppStore()

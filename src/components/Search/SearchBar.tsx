@@ -1,4 +1,3 @@
-// src/components/SearchBar.tsx
 import React, {
   useState,
   useEffect,
@@ -14,7 +13,21 @@ import { useAppStore } from "../../store/app-store"
 import { StandardArticle } from "../../services/types"
 import Loader from "../loaders/Loader"
 
+// Lazily load the FilterPanel component as it's not needed by default
 const FilterPanel = React.lazy(() => import("../filter/FilterPanel"))
+
+/**
+ * SearchBar component for rendering a search bar with filter capabilities.
+ *
+ * - Utilizes the NewsAggregator service to fetch news articles based on the search query.
+ * - Manages and updates the application store with fetched articles and filter options.
+ * - Provides a text input for entering search queries and a button to toggle filter visibility.
+ * - Displays the number of active filters applied.
+ * - Debounces the search query to reduce unnecessary API calls.
+ * - Displays a filter panel when the filter button is activated.
+ *
+ * @returns {JSX.Element} A React component rendering the search bar and optional filter panel.
+ */
 
 const SearchBar: React.FC = () => {
   const aggregator = useMemo(() => new NewsAggregator(), [])
@@ -38,7 +51,6 @@ const SearchBar: React.FC = () => {
 
   const handleSearch = useCallback(
     (query: string) => {
-      console.log("test rerender")
       setIsNewsLoading(true)
       aggregator.fetchNews(query).then((mergedArticles: StandardArticle[]) => {
         setAllArticles(mergedArticles)

@@ -12,12 +12,17 @@ type AppHeaderProps = {
 }
 
 /**
- * AppHeader is a React component that displays the application title and
- * contains buttons to toggle the theme and open the preferences dialog.
+ * The application header component.
  *
- * @param {AppHeaderProps} props
- * @param {() => void} props.setPreferencesOpen callback to open the preferences dialog
- * @returns {JSX.Element} The AppHeader component.
+ * This component displays the app's title and two buttons. The first button is
+ * a settings button that opens the preferences dialog when clicked. The second
+ * button is a theme toggle button that toggles the app's theme between light and
+ * dark.
+ *
+ * @param {object} props Component props.
+ * @param {function} props.setPreferencesOpen Function to set the preferences
+ *     dialog's open state.
+ * @returns {ReactElement} The AppHeader component.
  */
 const AppHeader: React.FC<AppHeaderProps> = ({ setPreferencesOpen }) => {
   const { preferences } = useAppStore()

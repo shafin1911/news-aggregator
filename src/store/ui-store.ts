@@ -6,6 +6,10 @@ interface UIState {
   setThemeMode: (themeMode: "light" | "dark") => void
 }
 
+/**
+ * A Zustand store for managing UI state.
+ * It uses the `zustand/persist` middleware to persist the 'themeMode' field.
+ */
 export const useUIStore = create<
   UIState,
   [["zustand/persist", Partial<Pick<UIState, "themeMode">>]]

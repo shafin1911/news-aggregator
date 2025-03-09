@@ -6,6 +6,18 @@ import { useFilteredArticles } from "../../hooks/useFilteredArticles"
 import { useAppStore } from "../../store/app-store"
 import Loader from "../loaders/Loader"
 
+/**
+ * Component to display a list of news articles.
+ *
+ * - Retrieves filtered articles from the app store and displays them in a grid view.
+ * - Uses the `useFilteredArticles` hook to apply user preferences and filter options.
+ * - Updates the store with the newly filtered articles using `setFilteredArticles`.
+ * - Shows a loader while articles are being loaded.
+ * - Displays an empty state if no articles are available.
+ *
+ * @returns {JSX.Element} A React component rendering the list of news articles.
+ */
+
 const NewsList: React.FC = () => {
   const {
     filteredArticles,

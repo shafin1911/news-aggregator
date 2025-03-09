@@ -19,6 +19,10 @@ interface AppState {
   setPreferences: (prefs: UserPreferences) => void
 }
 
+/**
+ * A Zustand store for managing application state.
+ * It uses the `zustand/persist` middleware to persist the 'preferences' field.
+ */
 export const useAppStore = create<
   AppState,
   [["zustand/persist", Partial<Pick<AppState, "preferences">>]]

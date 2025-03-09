@@ -1,14 +1,10 @@
-// src/services/guardianApi.ts
 import axios from "axios"
-import { GUARDIAN_MOCK } from "./guardian_mock"
-import { GUARDIAN_SECTION_MOCK } from "./guardian_section_mock"
 import { StandardArticle } from "../types"
 
 // Guardian API settings.
-const GUARDIAN_API_KEY = "test" // Replace with your key if needed.
+const GUARDIAN_API_KEY = import.meta.env.VITE_GUARDIAN_API_KEY
 const GUARDIAN_BASE_URL = "https://content.guardianapis.com"
 
-// Define the shape of a Guardian article as returned by the API.
 export type GuardianArticle = {
   id: string
   webPublicationDate: string
@@ -30,16 +26,21 @@ export type GuardianArticle = {
   }>
 }
 
+// Cache for Guardian news promises, keyed by query.
+// This is used to reduce API requests
 const cachedGuardianNews: Map<string, Promise<StandardArticle[]>> = new Map()
 
 /**
- * Fetch Guardian news using the provided query.
- * The API call includes tags for contributors and fields for headline, thumbnail, short-url, and trailText.
+ * Fetch news articles from the Guardian API using the provided query.
+ * The API call includes parameters for headline, trailText, short-url, and thumbnail.
+ * The promise resolves to an array of StandardArticle objects.
+ * @param {Object} params - Optional parameters to pass to the API, currently only "q" is supported.
+ * @returns {Promise<StandardArticle[]>} A promise resolving to an array of StandardArticle objects.
  */
 export const fetchGuardianNews = async (
   params: { q?: string } = {}
 ): Promise<StandardArticle[]> => {
-  const queryKey = params.q || "" // use empty string for default
+  const queryKey = params.q || ""
   if (cachedGuardianNews.has(queryKey)) {
     return cachedGuardianNews.get(queryKey)!
   }
@@ -75,6 +76,7 @@ export const fetchGuardianNews = async (
         const category = article.sectionName
           ? { id: article.sectionName.toLowerCase(), name: article.sectionName }
           : { id: "", name: "" }
+
         return {
           title,
           description,
@@ -104,8 +106,18 @@ export type GuardianSection = {
   webTitle: string
 }
 
+// Cache for Guardian sections promises.
+// This is used to reduce API requests
 let cachedSectionsPromise: Promise<GuardianSection[]> | null = null
 
+/**
+ * Fetches the list of sections from the Guardian API.
+ *
+ * @returns A promise resolving to an array of GuardianSection objects.
+ *          Each object has an id and webTitle property.
+ *          The webTitle is the human-readable name of the section.
+ *          The id is the lowercase version of webTitle.
+ */
 export const fetchGuardianSections = async (): Promise<GuardianSection[]> => {
   if (cachedSectionsPromise) return cachedSectionsPromise
   cachedSectionsPromise = axios

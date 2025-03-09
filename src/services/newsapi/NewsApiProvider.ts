@@ -1,10 +1,8 @@
 import axios from "axios"
-import { SOURCES_MOCK } from "./sources_mock"
-import { NEWS_MOCK } from "./news_mock"
 
-const API_KEY = "test" // Replace with your actual API key
+// NewsAPI settings
+const API_KEY = import.meta.env.VITE_NEWSAPI_KEY
 const BASE_URL = "https://newsapi.org/v2"
-const endpoint = "/everything"
 
 export type FilterOptions = {
   query?: string
@@ -20,16 +18,21 @@ type NewsApiData = {
   author: string
 }
 
+// Cache for news promises, keyed by query.
+// This is used to reduce API requests
 const cachedNewsPromises: Map<string, Promise<NewsApiData[]>> = new Map()
 
+/**
+ * Fetch news articles from the NewsAPI.
+ * @param {FilterOptions} [filters] - Optional filters to apply.
+ * @returns {Promise<NewsApiData[]>} A promise resolving to an array of news articles.
+ */
 export const fetchNews = async (filters: FilterOptions = {}) => {
   const queryKey = filters.query || ""
+
   if (cachedNewsPromises.has(queryKey)) {
     return cachedNewsPromises.get(queryKey)!
   }
-
-  // For example purposes, you could uncomment the next line to use mocks:
-  // if (!filters.query) return NEWS_MOCK.articles;
 
   const params: { q?: string; apiKey?: string } = {
     apiKey: API_KEY,
@@ -38,11 +41,14 @@ export const fetchNews = async (filters: FilterOptions = {}) => {
   if (filters.query) {
     params.q = filters.query
   } else {
+    // NewsAPI doesn't like empty queries at
+    // https://newsapi.org/docs/endpoints/everything
+    // so we just return an empty array
     return []
   }
 
   const promise = axios
-    .get(`${BASE_URL}${endpoint}`, { params })
+    .get(`${BASE_URL}/everything`, { params })
     .then((response) => response.data.articles)
     .catch((error) => {
       console.error("Error fetching news:", error)
@@ -51,18 +57,25 @@ export const fetchNews = async (filters: FilterOptions = {}) => {
       return []
     })
 
+  // Cache the promise
   cachedNewsPromises.set(queryKey, promise)
+
   return promise
 }
 
-export type NewsApiSourceOption = { id: string; category: string }
+export type NewsApiSourceOption = { id: string; category: string; name: string }
 
-// Instead of caching the raw sources, cache the promise.
+// Cache for sources promises.
+// This is used to reduce API requests
 let cachedSourcesPromise: Promise<NewsApiSourceOption[]> | null = null
 
+/**
+ * Fetch the list of sources from the News API.
+ * @returns {Promise<NewsApiSourceOption[]>} A promise resolving to an array of source objects.
+ */
 export const fetchSources = async () => {
   if (cachedSourcesPromise) return cachedSourcesPromise
-  // return SOURCES_MOCK.sources
+
   cachedSourcesPromise = axios
     .get(`${BASE_URL}/sources`, {
       params: { apiKey: API_KEY },

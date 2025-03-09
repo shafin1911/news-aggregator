@@ -1,9 +1,19 @@
-// src/components/EmptyState.tsx
 import React from "react"
 import { Box, Typography } from "@mui/material"
 import { motion } from "framer-motion"
 import { DotLottieReact } from "@lottiefiles/dotlottie-react"
 
+/**
+ * EmptyState is a component that displays a message and animation when
+ * no articles are found after a search or filter operation.
+ *
+ * It is a centered box with a header, a body, and an animation. The animation
+ * is a customizable Lottie animation.
+ *
+ * The component is intended to be used inside a NewsList component.
+ *
+ * @returns {JSX.Element} - The JSX element representing the component.
+ */
 const EmptyState: React.FC = () => {
   return (
     <Box sx={{ textAlign: "center", p: 4 }}>

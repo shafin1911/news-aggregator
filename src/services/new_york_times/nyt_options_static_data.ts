@@ -1,5 +1,6 @@
 import { CategoryOption, SourceOption } from "../types"
 
+// Static source data for New York Times as there isn't an API for this.
 export const NYT_SOURCES: SourceOption[] = [
   {
     id: "the new york times",
@@ -38,6 +39,7 @@ export const NYT_SOURCES: SourceOption[] = [
   },
 ]
 
+// Static category data for New York Times as there isn't an API for this.
 export const NYT_CATEGORIES: CategoryOption[] = [
   { id: "arts", display: "Arts" },
   { id: "automobiles", display: "Automobiles" },
