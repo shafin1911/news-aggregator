@@ -34,11 +34,21 @@ const NewsItem: React.FC<NewsItemProps> = ({ article }) => {
       <CardHeader
         avatar={<Avatar>{titleInitial}</Avatar>}
         title={
-          <Typography variant='subtitle1' fontWeight='600'>
-            {article.source?.name || "News Source"}
-          </Typography>
+          <div>
+            <Typography variant='subtitle1' fontWeight='600'>
+              {article.source?.name || "Unknown Source"}
+            </Typography>
+          </div>
         }
-        subheader={new Date(article.publishedAt).toLocaleDateString()}
+        subheader={
+          <span>
+            <Typography variant='overline' fontWeight='600'>
+              {article.category.name || ""}
+            </Typography>
+            <span> | </span>
+            <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+          </span>
+        }
         slot='header'
       />
 

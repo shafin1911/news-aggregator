@@ -1,6 +1,5 @@
-// src/services/newsapi/NewsApiProviderAdapter.ts
 import { NewsProvider, StandardArticle } from "../types"
-import { fetchNews, fetchSources } from "./NewsApiProvider"
+import { fetchNews, fetchSources, NewsApiSourceOption } from "./NewsApiProvider"
 
 export class NewsApiProviderAdapter implements NewsProvider {
   private sourceMapping: Record<string, string> = {}
@@ -13,7 +12,7 @@ export class NewsApiProviderAdapter implements NewsProvider {
   private async initializeMapping(): Promise<void> {
     try {
       const sources = await fetchSources()
-      sources.forEach((source: { id: string; category: string }) => {
+      sources.forEach((source: NewsApiSourceOption) => {
         // Store both the source id and category in lowercase.
         this.sourceMapping[source.id.toLowerCase()] = source.category
           ? source.category.toLowerCase()
@@ -50,7 +49,10 @@ export class NewsApiProviderAdapter implements NewsProvider {
           publishedAt: article.publishedAt,
           urlToImage: article.urlToImage,
           source: article.source, // assumed to have { id, name }
-          category: this.sourceMapping[sourceId] || "", // get category from mapping
+          category: {
+            id: this.sourceMapping[sourceId] || "",
+            name: this.sourceMapping[sourceId] || "",
+          }, // get category from mapping
           author: article.author || "",
         }
       }

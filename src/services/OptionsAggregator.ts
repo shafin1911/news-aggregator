@@ -13,13 +13,18 @@ export const aggregateOptions = async (): Promise<{
   const guardianSource = await getGuardianSource()
   const nytSources = getNytSources()
 
-  const allSources = [...newsapiSources, ...nytSources, guardianSource]
-
-  // Sort sources alphabetically by name.
-  allSources.sort((a, b) => a.name.localeCompare(b.name))
+  // Merge sources without duplicates
+  const mergedSources = Array.from(
+    new Map(
+      [...newsapiSources, ...nytSources, guardianSource].map((src) => [
+        src.id,
+        src,
+      ])
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name))
 
   // Get categories from news services
-  const newsapiCategories = await getNewsApiCategories(allSources)
+  const newsapiCategories = await getNewsApiCategories(mergedSources)
   const guardianCategories = await getGuardianCategories()
   const nytCategories = getNytCategories()
 
@@ -32,5 +37,5 @@ export const aggregateOptions = async (): Promise<{
     ).values()
   ).sort((a, b) => a.display.localeCompare(b.display))
 
-  return { sources: allSources, categories: mergedCategories }
+  return { sources: mergedSources, categories: mergedCategories }
 }

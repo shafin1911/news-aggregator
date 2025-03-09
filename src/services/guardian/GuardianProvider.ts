@@ -30,6 +30,8 @@ export type GuardianArticle = {
   }>
 }
 
+const cachedGuardianNews: Map<string, Promise<StandardArticle[]>> = new Map()
+
 /**
  * Fetch Guardian news using the provided query.
  * The API call includes tags for contributors and fields for headline, thumbnail, short-url, and trailText.
@@ -37,57 +39,64 @@ export type GuardianArticle = {
 export const fetchGuardianNews = async (
   params: { q?: string } = {}
 ): Promise<StandardArticle[]> => {
-  try {
-    // const response = await axios.get(`${GUARDIAN_BASE_URL}/search`, {
-    //   params: {
-    //     q: params.q,
-    //     format: "json",
-    //     "show-tags": "contributor",
-    //     "show-fields": "headline,thumbnail,short-url,trailText",
-    //     "use-date": "published",
-    //     "order-by": "relevance",
-    //     "page-size": 50,
-    //     "api-key": GUARDIAN_API_KEY,
-    //   },
-    // })
-    const response = { data: GUARDIAN_MOCK }
-    // The Guardian response wraps the results in response.results.
-    const results: GuardianArticle[] = response.data.response.results
-
-    // Map each Guardian article into a standard format.
-    // In guardianApi.ts, inside fetchGuardianNews mapping:
-    const mappedArticles: StandardArticle[] = results.map((article) => {
-      const fields = article.fields || {}
-      const title = fields.headline || article.webTitle
-      const description = fields.trailText || ""
-      const url = fields["short-url"] || article.webUrl
-      const urlToImage = fields.thumbnail || ""
-      const publishedAt = article.webPublicationDate
-      const contributors = article.tags
-        .filter((tag) => tag.type === "contributor")
-        .map((tag) => tag.webTitle)
-      const author = contributors.join(", ")
-      const source = { id: "guardian", name: "The Guardian" }
-      // Use sectionName (converted to lowercase) as category.
-      const category = article.sectionName
-        ? article.sectionName.toLowerCase()
-        : ""
-      return {
-        title,
-        description,
-        url,
-        publishedAt,
-        urlToImage,
-        source,
-        category,
-        author,
-      }
-    })
-    return mappedArticles
-  } catch (error) {
-    console.error("Error fetching Guardian news:", error)
-    return []
+  const queryKey = params.q || "" // use empty string for default
+  if (cachedGuardianNews.has(queryKey)) {
+    return cachedGuardianNews.get(queryKey)!
   }
+
+  const promise = axios
+    .get(`${GUARDIAN_BASE_URL}/search`, {
+      params: {
+        q: params.q,
+        format: "json",
+        "show-tags": "contributor",
+        "show-fields": "headline,thumbnail,short-url,trailText",
+        "use-date": "published",
+        "order-by": "relevance",
+        "page-size": 50,
+        "api-key": GUARDIAN_API_KEY,
+      },
+    })
+    .then((response) => {
+      const results: GuardianArticle[] = response.data.response.results
+      const mappedArticles: StandardArticle[] = results.map((article) => {
+        const fields = article.fields || {}
+        const title = fields.headline || article.webTitle
+        const description = fields.trailText || ""
+        const url = fields["short-url"] || article.webUrl
+        const urlToImage = fields.thumbnail || ""
+        const publishedAt = article.webPublicationDate
+        const contributors = article.tags
+          .filter((tag) => tag.type === "contributor")
+          .map((tag) => tag.webTitle)
+        const author = contributors.join(", ")
+        const source = { id: "guardian", name: "The Guardian" }
+        // Use sectionName (converted to lowercase) as category.
+        const category = article.sectionName
+          ? { id: article.sectionName.toLowerCase(), name: article.sectionName }
+          : { id: "", name: "" }
+        return {
+          title,
+          description,
+          url,
+          publishedAt,
+          urlToImage,
+          source,
+          category,
+          author,
+        }
+      })
+      return mappedArticles
+    })
+    .catch((error) => {
+      console.error("Error fetching Guardian news:", error)
+      // Remove the cached promise if there's an error, so future calls can retry.
+      cachedGuardianNews.delete(queryKey)
+      return []
+    })
+
+  cachedGuardianNews.set(queryKey, promise)
+  return promise
 }
 
 export type GuardianSection = {
@@ -95,15 +104,22 @@ export type GuardianSection = {
   webTitle: string
 }
 
+let cachedSectionsPromise: Promise<GuardianSection[]> | null = null
+
 export const fetchGuardianSections = async (): Promise<GuardianSection[]> => {
-  return GUARDIAN_SECTION_MOCK.response.results
-  try {
-    const response = await axios.get(`${GUARDIAN_BASE_URL}/sections`, {
+  if (cachedSectionsPromise) return cachedSectionsPromise
+  cachedSectionsPromise = axios
+    .get(`${GUARDIAN_BASE_URL}/sections`, {
       params: { "api-key": GUARDIAN_API_KEY },
     })
-    return response.data.response.results
-  } catch (error) {
-    console.error("Error fetching Guardian sections:", error)
-    return []
-  }
+    .then((response) => {
+      return response.data.response.results
+    })
+    .catch((error) => {
+      console.error("Error fetching Guardian sections:", error)
+      // Reset the cache so that subsequent calls can try again.
+      cachedSectionsPromise = null
+      return []
+    })
+  return cachedSectionsPromise
 }

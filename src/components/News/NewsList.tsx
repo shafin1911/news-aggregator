@@ -8,8 +8,8 @@ import Loader from "../loaders/Loader"
 
 const NewsList: React.FC = () => {
   const {
-    articles,
-    setArticles,
+    filteredArticles,
+    setFilteredArticles,
     allArticles,
     filterOptions,
     preferences,
@@ -17,29 +17,29 @@ const NewsList: React.FC = () => {
   } = useAppStore()
 
   // Use custom hook to get filtered articles.
-  const filteredArticles = useFilteredArticles(
+  const newFilteredArticles = useFilteredArticles(
     allArticles,
     filterOptions,
     preferences
   )
 
   useEffect(() => {
-    setArticles(filteredArticles)
-  }, [filteredArticles, setArticles])
+    setFilteredArticles(newFilteredArticles)
+  }, [newFilteredArticles, setFilteredArticles])
 
   if (isNewsLoading)
     return <Loader message='Loading articles. Please wait...' />
 
-  if (!articles.length) {
+  if (!filteredArticles.length) {
     return <EmptyState />
   }
 
   return (
     <Paper sx={{ p: 2, mb: 4 }} elevation={2} data-testid='news-list'>
       <Grid container spacing={3}>
-        {articles.map((article, index) => (
+        {filteredArticles.map((filteredArticle, index) => (
           <Grid item xs={12} md={6} lg={4} xl={3} key={index}>
-            <NewsItem article={article} />
+            <NewsItem article={filteredArticle} />
           </Grid>
         ))}
       </Grid>

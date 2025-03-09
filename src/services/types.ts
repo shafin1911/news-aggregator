@@ -10,7 +10,7 @@ export type StandardArticle = {
   publishedAt: string
   urlToImage: string
   source: { id: string; name: string }
-  category: string
+  category: { id: string; name: string }
   author: string
 }
 

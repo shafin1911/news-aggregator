@@ -33,7 +33,7 @@ const createCategoryPredicate =
   (filterOptions: FilterOptions) =>
   (article: StandardArticle): boolean => {
     if (filterOptions.category) {
-      return (article.category || "").toLowerCase() === filterOptions.category
+      return article.category?.id?.toLowerCase() === filterOptions.category
     }
     return true
   }
@@ -63,8 +63,10 @@ const createPreferredCategoriesPredicate =
   (article: StandardArticle): boolean => {
     if (preferences.categories.length > 0) {
       return (
-        (article.category || "").toLowerCase() !== "" &&
-        preferences.categories.includes((article.category || "").toLowerCase())
+        article.category?.id?.toLowerCase() !== "" &&
+        preferences.categories.includes(
+          (article.category?.id || "").toLowerCase()
+        )
       )
     }
     return true

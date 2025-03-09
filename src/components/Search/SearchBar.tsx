@@ -8,6 +8,7 @@ import React, {
 } from "react"
 import { Box, TextField, IconButton, Paper, Badge } from "@mui/material"
 import FilterListIcon from "@mui/icons-material/FilterList"
+import FilterListOffIcon from "@mui/icons-material/FilterListOff"
 import { NewsAggregator } from "../../services/NewsAggregator"
 import { useAppStore } from "../../store/app-store"
 import { StandardArticle } from "../../services/types"
@@ -20,7 +21,7 @@ const SearchBar: React.FC = () => {
 
   const {
     setAllArticles,
-    setArticles,
+    setFilteredArticles,
     setFilterOptions,
     setIsNewsLoading,
     filterOptions,
@@ -42,7 +43,7 @@ const SearchBar: React.FC = () => {
       aggregator.fetchNews(query).then((mergedArticles: StandardArticle[]) => {
         setAllArticles(mergedArticles)
         setFilterOptions({ fromDate: "", toDate: "", category: "", source: "" })
-        setArticles(mergedArticles)
+        setFilteredArticles(mergedArticles)
         setTimeout(() => setIsNewsLoading(false), 3000)
       })
     },
@@ -51,7 +52,7 @@ const SearchBar: React.FC = () => {
       aggregator,
       setAllArticles,
       setFilterOptions,
-      setArticles,
+      setFilteredArticles,
     ]
   )
 
@@ -84,7 +85,7 @@ const SearchBar: React.FC = () => {
           />
           <Badge badgeContent={activeFilterCount} color='secondary'>
             <IconButton onClick={() => setShowFilters((prev) => !prev)}>
-              <FilterListIcon />
+              {!showFilters ? <FilterListIcon /> : <FilterListOffIcon />}
             </IconButton>
           </Badge>
         </Box>

@@ -1,4 +1,4 @@
-// src/components/FilterPanel.tsx
+// src/components/Filter/FilterPanel.tsx
 import React, { useState, useEffect, useCallback } from "react"
 import {
   Box,
@@ -10,43 +10,28 @@ import {
   MenuItem,
   Button,
 } from "@mui/material"
-import { useAggregatedOptions } from "../../hooks/useAggregatedOptions"
 import { useAppStore } from "../../store/app-store"
 import { FilterOptions } from "../../services/types"
+import { useDerivedFilterOptions } from "../../hooks/useDerivedFilterOptions"
 
 const FilterPanel: React.FC = () => {
-  const { filterOptions, setFilterOptions } = useAppStore()
+  // Get filter options and articles from the store.
+  const { filterOptions, setFilterOptions, allArticles } = useAppStore()
   const [localFilters, setLocalFilters] = useState<FilterOptions>(filterOptions)
 
-  // Get aggregated options from our custom hook.
-  const { sources, categories } = useAggregatedOptions()
+  const { availableSources, availableCategories } =
+    useDerivedFilterOptions(allArticles)
 
-  const handleApplyFilters = useCallback(
-    (filters: FilterOptions) => {
-      setFilterOptions(filters)
-    },
-    [setFilterOptions]
-  )
-
-  const handleClearFilters = useCallback(() => {
-    setFilterOptions({ fromDate: "", toDate: "", category: "", source: "" })
-  }, [setFilterOptions])
-
-  // Update local state when parent's filterOptions change.
+  // Update local state when store filterOptions change.
   useEffect(() => {
     setLocalFilters(filterOptions)
   }, [filterOptions])
 
-  // Sort filtered sources alphabetically by name.
-  const sortedFilteredSources = [...sources].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  )
+  const handleApplyFilters = useCallback(() => {
+    setFilterOptions(localFilters)
+  }, [localFilters, setFilterOptions])
 
-  const handleApply = () => {
-    handleApplyFilters(localFilters)
-  }
-
-  const handleClear = () => {
+  const handleClearFilters = useCallback(() => {
     const cleared: FilterOptions = {
       fromDate: "",
       toDate: "",
@@ -54,8 +39,8 @@ const FilterPanel: React.FC = () => {
       source: "",
     }
     setLocalFilters(cleared)
-    handleClearFilters()
-  }
+    setFilterOptions(cleared)
+  }, [setFilterOptions])
 
   return (
     <Paper sx={{ p: 2, mt: 2, borderRadius: 0 }} data-testid='filter-panel'>
@@ -108,7 +93,7 @@ const FilterPanel: React.FC = () => {
               }
             >
               <MenuItem value=''>All Categories</MenuItem>
-              {categories.map((cat) => (
+              {availableCategories.map((cat) => (
                 <MenuItem key={cat.id} value={cat.id}>
                   {cat.display}
                 </MenuItem>
@@ -128,7 +113,7 @@ const FilterPanel: React.FC = () => {
               }
             >
               <MenuItem value=''>All Sources</MenuItem>
-              {sortedFilteredSources.map((src) => (
+              {availableSources.map((src) => (
                 <MenuItem key={src.id} value={src.id}>
                   {src.name}
                 </MenuItem>
@@ -137,10 +122,10 @@ const FilterPanel: React.FC = () => {
           </FormControl>
         </Box>
         <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-          <Button variant='outlined' onClick={handleClear}>
+          <Button variant='outlined' onClick={handleClearFilters}>
             Clear
           </Button>
-          <Button variant='contained' onClick={handleApply}>
+          <Button variant='contained' onClick={handleApplyFilters}>
             Apply Filters
           </Button>
         </Box>

@@ -8,12 +8,12 @@ import {
 
 interface AppState {
   allArticles: StandardArticle[]
-  articles: StandardArticle[]
+  filteredArticles: StandardArticle[]
   filterOptions: FilterOptions
   isNewsLoading: boolean
   preferences: UserPreferences
   setAllArticles: (articles: StandardArticle[]) => void
-  setArticles: (articles: StandardArticle[]) => void
+  setFilteredArticles: (filteredArticles: StandardArticle[]) => void
   setFilterOptions: (filters: FilterOptions) => void
   setIsNewsLoading: (isLoading: boolean) => void
   setPreferences: (prefs: UserPreferences) => void
@@ -26,12 +26,12 @@ export const useAppStore = create<
   persist(
     (set) => ({
       allArticles: [],
-      articles: [],
+      filteredArticles: [],
       filterOptions: { fromDate: "", toDate: "", category: "", source: "" },
       preferences: { sources: [], categories: [], authors: [] },
       isNewsLoading: false,
       setAllArticles: (articles) => set({ allArticles: articles }),
-      setArticles: (articles) => set({ articles }),
+      setFilteredArticles: (filteredArticles) => set({ filteredArticles }),
       setFilterOptions: (filters) => set({ filterOptions: filters }),
       setIsNewsLoading: (isLoading) => set({ isNewsLoading: isLoading }),
       setPreferences: (prefs) => set({ preferences: prefs }),
